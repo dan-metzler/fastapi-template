@@ -6,12 +6,40 @@ import json
 from urllib.request import urlopen
 from pathlib import Path
 
+# def run_command(cmd, check=True):
+#     """Run a system command safely."""
+#     try:
+#         subprocess.run(cmd, check=check, shell=True)
+#     except subprocess.CalledProcessError:
+#         print(f"❌ Error running: {cmd}")
+#         sys.exit(1)
+
 def run_command(cmd, check=True):
-    """Run a system command safely."""
+    """
+    Run a system command safely with better error logging.
+    Shows stdout/stderr if the command fails.
+    """
     try:
-        subprocess.run(cmd, check=check, shell=True)
-    except subprocess.CalledProcessError:
-        print(f"❌ Error running: {cmd}")
+        result = subprocess.run(
+            cmd,
+            check=check,
+            shell=True,
+            text=True,
+            capture_output=True
+        )
+        # If you want to see output live, print it here
+        if result.stdout:
+            print(result.stdout.strip())
+        return result
+    except subprocess.CalledProcessError as e:
+        print(f"\n❌ Error running command: {cmd}")
+        if e.stdout:
+            print(f"--- STDOUT ---\n{e.stdout.strip()}")
+        if e.stderr:
+            print(f"--- STDERR ---\n{e.stderr.strip()}")
+        sys.exit(e.returncode)
+    except FileNotFoundError:
+        print(f"\n❌ Command not found: {cmd}")
         sys.exit(1)
 
 def find_npm():
@@ -25,35 +53,66 @@ def find_npm():
         return Path(npm_path)
     return None
 
+def ensure_python_version(min_version=(3, 13)):
+    """
+    Ensure the running Python interpreter is >= min_version.
+    min_version should be a tuple like (3, 13).
+    """
+    if sys.version_info < min_version:
+        raise RuntimeError(
+            f"❌ Python {min_version[0]}.{min_version[1]} or higher is required. "
+            f"❌ Current version: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        )
+    print(f"✅ Python version OK: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro} | SystemExecutablePath: {sys.executable}")
+
+
+def display_banner():
+    print(r"""
+    ____           __              _       __                       __      __     
+   / __/___ ______/ /_____ _____  (_)     / /____  ____ ___  ____  / /___ _/ /____ 
+  / /_/ __ `/ ___/ __/ __ `/ __ \/ /_____/ __/ _ \/ __ `__ \/ __ \/ / __ `/ __/ _ \
+ / __/ /_/ (__  ) /_/ /_/ / /_/ / /_____/ /_/  __/ / / / / / /_/ / / /_/ / /_/  __/
+/_/  \__,_/____/\__/\__,_/ .___/_/      \__/\___/_/ /_/ /_/ .___/_/\__,_/\__/\___/ 
+                        /_/                              /_/                       
+""")
 
 def create_project(project_name):
-    root_folder = Path.cwd()
-    project_root = root_folder / project_name
-    project_root.mkdir(parents=True, exist_ok=True)
 
+    ####################################################################
+    # display banner, check python version installed, define root folder
+    ####################################################################
+    display_banner()
+    print("=================================================================================")
+    ensure_python_version()
+    print("=================================================================================")
+    print()
+    root_folder = Path.cwd()
+
+
+    ####################################################################
     # Step 1: Create virtual environment
+    ####################################################################
     venv_path = root_folder / "venv"
     if not venv_path.exists():
         print("⚙️ Creating virtual environment...")
         run_command(f"{sys.executable} -m venv {venv_path}")
+
+        if not venv_path.exists:
+            print("❌ Virtual environment creation failed. Stopping script.")
+            sys.exit(1)
+        else:
+            print(f"✓ Virtual environment created at: {venv_path}")
     else:
-        print(f"✔️ Virtual environment already exists at {venv_path}")
+        print(f"✓ Virtual environment already exists at {venv_path}")
 
     # Step 2: pip executable
     pip_executable = venv_path / ("Scripts/pip.exe" if os.name == "nt" else "bin/pip")
 
-    # Step 3: requirements.txt
-    requirements = """
-fastapi[standard]
-uvicorn[standard]
-sqlalchemy
-jinja2
-python-dotenv
-supabase
-"""
-    req_file = root_folder / "requirements.txt"
-    req_file.write_text(requirements, encoding="utf-8")
-    print("✔️ requirements.txt created")
+    ####################################################################
+    # Create the project name folder
+    ####################################################################
+    project_root = root_folder / project_name
+    project_root.mkdir(parents=True, exist_ok=True)
 
 
     ####################################################################
@@ -79,15 +138,16 @@ supabase
 
     prettierrc_file = root_folder / ".prettierrc"
     prettierrc_file.write_text(prettierrc_file_content, encoding="utf-8")
-    print("✔️ .prettierrc created")
+    print("✓ .prettierrc created")
 
 
     ####################################################################
     # Step 4: Install dependencies
     ####################################################################
-    print("⚙️ Installing dependencies...")
+    req_file = root_folder / "requirements.txt"
+    print("⚙️ Installing requirements.txt dependecies...")
     run_command(f"{pip_executable} install -r {req_file}")
-    print("✔️ Dependencies installed")
+    print("✓ Dependencies installed")
 
 
     ####################################################################
@@ -133,7 +193,6 @@ supabase
         project_root / "frontend" / "templates" / "index.html",
         project_root / "tests" / "__init__.py",
         project_root / ".env",
-        project_root / ".gitignore",
         project_root / "main.py",
         root_folder / ".vscode" / "settings.json",
     ]
@@ -153,11 +212,11 @@ supabase
                 cwd=project_root,
                 check=True
             )
-            print(f"✔️ [SUCCESS] Installed Flowbite using {npm_path}")
+            print(f"✓ Success: Installed Flowbite using {npm_path}")
         except subprocess.CalledProcessError as e:
-            print(f"❌ [ERROR] npm install failed: {e}")
+            print(f"❌ Error: npm install failed: {e}")
     else:
-        print("❌ [ERROR] npm not found on this system. Please install Node.js.")
+        print("❌ Error: npm not found on this system. Please install Node.js.")
 
     # flowbite.min.js copy to frontend/public/js
     src_dir = project_root / "node_modules" / "flowbite" / "dist"
@@ -174,7 +233,7 @@ supabase
         dest = dest_dir / fname
         if src.exists():
             shutil.copy2(src, dest)
-            print(f"✔️ [SUCCESS] Copied {src} -> {dest}")
+            print(f"✓ Success: Copied {src} -> {dest}")
         else:
             print(f"[WARNING] {src} not found")
 
@@ -189,9 +248,9 @@ supabase
         with urlopen("https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js") as r:
             data = r.read()
             install_path.write_bytes(data)
-        print(f"✔️ [SUCCESS] Downloaded htmx ({len(data)} bytes) to {install_path}")
+        print(f"✓ Success: Downloaded htmx ({len(data)} bytes) to {install_path}")
     except Exception as e:
-        print(f"❌ [ERROR] Failed to download htmx: {e}")
+        print(f"❌ Error: Failed to download htmx: {e}")
 
 
     ####################################################################
@@ -204,9 +263,9 @@ supabase
         with urlopen(url) as r:
             data = r.read()
             tailwindcss_install_path.write_bytes(data)
-        print(f"✔️ [SUCCESS] Downloaded TailwindCSS ({len(data)} bytes) to {tailwindcss_install_path}")
+        print(f"✓ Success: Downloaded TailwindCSS ({len(data)} bytes) to {tailwindcss_install_path}")
     except Exception as e:
-        print(f"❌ [ERROR] Failed to download TailwindCSS: {e}")
+        print(f"❌ Error: Failed to download TailwindCSS: {e}")
 
 
     ####################################################################
@@ -278,8 +337,6 @@ if __name__ == '__main__':
     uvicorn.run(app, host='127.0.0.1', port=8000, reload=True)
 """
     (project_root / "main.py").write_text(main_py_content, encoding="utf-8")
-
-
 
 
     ####################################################################
@@ -1207,7 +1264,7 @@ themeToggleBtn.addEventListener('click', function() {
     with package_json_path.open("w", encoding="utf-8") as f:
         json.dump(package_data, f, indent=2)
 
-    print("✔️ Added 'scripts' section to package.json")
+    print("✓ Added 'scripts' section to package.json")
 
 
     # vscode settings.json workspace settings
