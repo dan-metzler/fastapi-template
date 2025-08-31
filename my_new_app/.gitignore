@@ -1,0 +1,9 @@
+# Ignore everything
+*
+# But not this file
+!.gitignore
+!README.md
+!create_project.py
+!requirements.txt
+!.vscode/
+!settings.json
