@@ -95,7 +95,7 @@ def create_project(project_name):
     venv_path = root_folder / "venv"
     if not venv_path.exists():
         print("⚙️ Creating virtual environment...")
-        run_command(f"{sys.executable} -m venv {venv_path}")
+        run_command(f'"{sys.executable}" -m venv "{venv_path}"')
 
         if not venv_path.exists:
             print("❌ Virtual environment creation failed. Stopping script.")
