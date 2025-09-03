@@ -17,10 +17,10 @@ Perfect for building **scalable, full-stack web apps** quickly with a clean deve
 ## ✅ TODO / In Progress
 
 - [x] Add "uv" instead of "pip" for dependency management
-- [] Add Authentication from supabase
-- [] Add User and Admin authorization with routes
-- [] Google Analytics Dashboard
-- [] SMTP Email Functionality
+- [ ] Add Authentication from supabase
+- [ ] Add User and Admin authorization with routes
+- [ ] Google Analytics Dashboard
+- [ ] SMTP Email Functionality
 
 ---
 
