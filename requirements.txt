@@ -3,5 +3,4 @@ fastapi[standard]
 uvicorn[standard]
 sqlalchemy
 jinja2
-python-dotenv
 supabase
