@@ -4,3 +4,4 @@ uvicorn[standard]
 sqlalchemy
 jinja2
 supabase
+pytest
