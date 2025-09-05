@@ -19,7 +19,7 @@ Perfect for building **scalable, full-stack web apps** quickly with a clean deve
 - [x] Add "uv" instead of "pip" for dependency management
 - [ ] Add Authentication from supabase
 - [ ] Add User and Admin authorization with routes
-- [ ] Google Analytics Dashboard
+- [ ] Rate Limiting auth routes
 - [ ] SMTP Email Functionality
 
 ---
@@ -74,4 +74,22 @@ python create_project.py <new_project_folderpath> <project_name>
 
 # Example :
 python .\create_project.py "C:\Users\User\Desktop\my-new-project" "AppNameExample"
+```
+
+### 5. Open the project folder
+
+```shell
+cd C:\Users\User\Desktop\my-new-project
+```
+
+### 6. Open two terminals in the following path
+
+```shell
+C:\Users\User\Desktop\my-new-project\AppNameExample
+
+# run fastapi command in one
+uvicorn main:app --reload
+
+# run tailwind in the other
+npm run dev
 ```
