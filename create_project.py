@@ -147,6 +147,36 @@ def create_project(project_folderpath, project_name):
     shutil.copy2(prettierrc_file_src, root_folder)
     print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Copied .prettierrc file")
 
+    # Path to the .gitignore file
+    gitignore_path = root_folder / ".gitignore"
+    gitignore_content = """# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.env
+.venv/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+    """
+    gitignore_path.write_text(gitignore_content, encoding="utf-8")
+    print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Created .gitignore file")
+
     ####################################################################
     # Step 4: Install dependencies
     ####################################################################
