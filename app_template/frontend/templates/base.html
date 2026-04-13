@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}App{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/bulma.min.css" />
+    <link rel="stylesheet" href="/static/css/custom.css" />
+    <script src="/static/js/htmx.min.js" defer></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <strong>MyApp</strong>
+        </a>
+      </div>
+      <div class="navbar-menu">
+        <div class="navbar-start">
+          <a class="navbar-item" href="/">Home</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="section">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>Built with FastAPI, HTMX &amp; Bulma</p>
+      </div>
+    </footer>
+  </body>
+</html>

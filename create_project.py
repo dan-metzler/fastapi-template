@@ -2,7 +2,6 @@ import os
 import sys
 import shutil
 import subprocess
-import json
 import time
 import re
 from urllib.request import urlopen
@@ -48,17 +47,6 @@ def run_command(cmd, check=True):
     except FileNotFoundError:
         print(f"\n❌ Command not found: {cmd}")
         sys.exit(1)
-
-def find_npm():
-    """
-    Find npm executable in a cross-platform way.
-    Returns path to npm or None if not found.
-    """
-    # Try system PATH first
-    npm_path = shutil.which("npm")
-    if npm_path:
-        return Path(npm_path)
-    return None
 
 def ensure_python_version(min_version=(3, 13)):
     """
@@ -149,13 +137,7 @@ def create_project(project_folderpath, project_name):
 
     # Path to the .gitignore file
     gitignore_path = root_folder / ".gitignore"
-    gitignore_content = """# Node
-node_modules/
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-
-# Python
+    gitignore_content = """# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -188,104 +170,37 @@ Thumbs.db
     print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} requirements.txt installed")
 
     ####################################################################
-    # npm install flowbite
+    # Download HTMX
     ####################################################################
-    npm_path = find_npm()
-    if npm_path:
-        try:
-            subprocess.run(
-                [str(npm_path), "install", "flowbite", "--silent", "--no-fund", "--no-audit"],
-                cwd=project_root,
-                check=True
-            )
-            print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Installed Flowbite using {npm_path}")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Error: npm install failed: {e}")
-    else:
-        print("❌ Error: npm not found on this system. Please install Node.js.")
+    js_dir = project_root / "frontend" / "public" / "js"
+    js_dir.mkdir(parents=True, exist_ok=True)
 
-    # flowbite.min.js copy to frontend/public/js
-    src_dir = project_root / "node_modules" / "flowbite" / "dist"
-    dest_dir = project_root / "frontend" / "public" / "js"
-
-    # make sure destination exists
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    # files to copy
-    files = ["flowbite.min.js", "flowbite.min.js.map"]
-
-    for fname in files:
-        src = src_dir / fname
-        dest = dest_dir / fname
-        if src.exists():
-            shutil.copy2(src, dest)
-            print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Copied {src} -> {Path("...") / Path(*dest_dir.parts[-4:])}")
-        else:
-            sys.exit(f"Error copying flowbite.min.js and flowbite.min.js.map files to dest dir: {dest_dir}")
-
-
-    ####################################################################
-    # install htmx link form https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js to frontend/public/js
-    ####################################################################
-    install_path = project_root / "frontend" / "public" / "js" / "htmx.min.js"
-    install_path.parent.mkdir(parents=True, exist_ok=True)
-
+    htmx_path = js_dir / "htmx.min.js"
     try:
         with urlopen("https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js") as r:
             data = r.read()
-            install_path.write_bytes(data)
-        print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Downloaded htmx ({len(data)} bytes) to {install_path}")
+            htmx_path.write_bytes(data)
+        print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Downloaded htmx ({len(data)} bytes) -> {htmx_path}")
     except Exception as e:
         print(f"❌ Error: Failed to download htmx: {e}")
 
-
     ####################################################################
-    # install tailwindcss standalone executable
+    # Download Bulma CSS
     ####################################################################
+    css_dir = project_root / "frontend" / "public" / "css"
+    css_dir.mkdir(parents=True, exist_ok=True)
 
+    bulma_path = css_dir / "bulma.min.css"
     try:
-        subprocess.run(
-            [str(npm_path), "install", "tailwindcss", "@tailwindcss/cli", "--silent", "--no-fund", "--no-audit"],
-            cwd=project_root,
-            check=True
-        )
-        print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Installed @tailwindcss/cli using {npm_path}")
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Error: npm install failed: {e}")
-    # tailwindcss_install_path = project_root / "tailwindcss.exe"
-    # url = "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.12/tailwindcss-windows-x64.exe"
-
-    # try:
-    #     with urlopen(url) as r:
-    #         data = r.read()
-    #         tailwindcss_install_path.write_bytes(data)
-    #     print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Downloaded TailwindCSS ({len(data)} bytes) to {tailwindcss_install_path}")
-    # except Exception as e:
-    #     print(f"❌ Error: Failed to download TailwindCSS: {e}")
-
-    ####################################################################
-    # update the package.json script commands
-    ####################################################################
-    package_json_path = project_root / "package.json"
-
-    # Load the existing package.json
-    with package_json_path.open("r", encoding="utf-8") as f:
-        package_data = json.load(f)
-
-    # Add the scripts section if it doesn't exist
-    package_data.setdefault("scripts", {})
-    package_data["scripts"]["dev"] = "npx @tailwindcss/cli -i ./frontend/public/css/input.css -o ./frontend/public/css/output.css --watch"
-
-    # Write the updated JSON back
-    with package_json_path.open("w", encoding="utf-8") as f:
-        json.dump(package_data, f, indent=2)
+        with urlopen("https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css") as r:
+            data = r.read()
+            bulma_path.write_bytes(data)
+        print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Downloaded Bulma CSS ({len(data)} bytes) -> {bulma_path}")
+    except Exception as e:
+        print(f"❌ Error: Failed to download Bulma CSS: {e}")
 
     end_time = time.time()  # record end
     elapsed = end_time - start_time
-
-
-
-    print(f"{bcolors.OKGREEN}✔{bcolors.ENDC} Added 'scripts' section to package.json | Command: npm run dev")
 
     print()
     print(f"🎉 {bcolors.BOLD}{bcolors.OKGREEN}Project setup complete in {elapsed:.2f} seconds, check it out!{bcolors.ENDC} {bcolors.WARNING}->{bcolors.ENDC} {bcolors.BOLD}{bcolors.OKCYAN}{root_folder}{bcolors.ENDC}")

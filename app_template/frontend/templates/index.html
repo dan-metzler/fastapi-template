@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="title">Welcome</h1>
+  <p class="subtitle">FastAPI + Jinja2 + HTMX + Bulma</p>
+
+  <div class="box">
+    <h2 class="title is-5">HTMX Example</h2>
+    <button
+      class="button is-primary"
+      hx-get="/hello"
+      hx-target="#result"
+      hx-swap="innerHTML"
+    >
+      Click me
+    </button>
+    <div id="result" class="mt-4"></div>
+  </div>
+</div>
+{% endblock %}

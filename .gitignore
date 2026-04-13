@@ -1,10 +1,12 @@
 # Ignore everything
 *
-# But not this file
+# But not these files
 !.gitignore
 !README.md
 !create_project.py
 !requirements.txt
 !.vscode/
-!settings.json
-!app_template
+!.vscode/settings.json
+!.prettierrc
+!app_template/
+!app_template/**
